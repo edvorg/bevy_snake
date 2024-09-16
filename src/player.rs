@@ -1,13 +1,30 @@
+use std::time::Duration;
 use bevy::color::palettes::css::WHITE;
 use bevy::prelude::*;
 
+const MOVEMENT_INTERVAL: Duration = Duration::from_millis(500);
+
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+struct Direction {
+    direction: IVec2,
+}
+
+#[derive(Resource)]
+struct MovementTimer {
+    timer: Timer,
+}
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(MovementTimer {
+            timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
+        });
+        app.add_systems(Update, input);
         app.add_systems(Update, movement);
         app.add_systems(Startup, setup);
     }
@@ -31,12 +48,15 @@ fn setup(
                 }),
                 ..Default::default()
             },
+            Direction {
+                direction: IVec2::ZERO,
+            },
         ))
         .with_children(|children| {
             children.spawn(PointLightBundle {
                 point_light: PointLight {
                     shadows_enabled: true,
-                    intensity: 10_000_000.,
+                    intensity: 10_000_0.,
                     range: 100.0,
                     shadow_depth_bias: 0.1,
                     radius: 0.5,
@@ -48,29 +68,44 @@ fn setup(
         });
 }
 
-fn movement(
-    mut query: Query<&mut Transform, With<Player>>,
-    time: Res<Time>,
+fn input(
+    mut query: Query<&mut Direction, With<Player>>,
     keyboard: Res<ButtonInput<KeyCode>>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
-        for mut transform in query.iter_mut() {
-            transform.translation.x -= 3.0 * time.delta_seconds();
+        for mut direction in query.iter_mut() {
+            direction.direction = IVec2::new(-1, 0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowRight) {
-        for mut transform in query.iter_mut() {
-            transform.translation.x += 3.0 * time.delta_seconds();
+        for mut direction in query.iter_mut() {
+            direction.direction = IVec2::new(1, 0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowUp) {
-        for mut transform in query.iter_mut() {
-            transform.translation.z -= 3.0 * time.delta_seconds();
+        for mut direction in query.iter_mut() {
+            direction.direction = IVec2::new(0, -1);
         }
     }
     if keyboard.pressed(KeyCode::ArrowDown) {
-        for mut transform in query.iter_mut() {
-            transform.translation.z += 3.0 * time.delta_seconds();
+        for mut direction in query.iter_mut() {
+            direction.direction = IVec2::new(0, 1);
+        }
+    }
+}
+
+fn movement(
+    mut query: Query<(&mut Transform, &Direction)>,
+    mut timer: ResMut<MovementTimer>,
+    time: Res<Time>,
+) {
+    if timer.timer.tick(time.delta()).just_finished() {
+        for (mut transform, direction) in query.iter_mut() {
+            transform.translation += Vec3::new(
+                direction.direction.x as f32,
+                0.0,
+                direction.direction.y as f32,
+            );
         }
     }
 }
