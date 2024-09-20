@@ -71,6 +71,7 @@ fn setup(
 fn input(
     mut query: Query<&mut Direction, With<Player>>,
     keyboard: Res<ButtonInput<KeyCode>>,
+    mut exit: EventWriter<AppExit>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
         for mut direction in query.iter_mut() {
@@ -91,6 +92,9 @@ fn input(
         for mut direction in query.iter_mut() {
             direction.direction = IVec2::new(0, 1);
         }
+    }
+    if keyboard.pressed(KeyCode::Escape) {
+        exit.send(AppExit::Success);
     }
 }
 
