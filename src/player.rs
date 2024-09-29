@@ -19,8 +19,14 @@ pub struct SnakeLink {
 }
 
 #[derive(Component)]
-struct Velocity {
-    velocity: Vec2,
+struct Position {
+    position: IVec2,
+    prev_position: IVec2,
+}
+
+#[derive(Component)]
+struct Direction {
+    direction: IVec2,
 }
 
 #[derive(Resource)]
@@ -38,6 +44,7 @@ impl Plugin for PlayerPlugin {
         app.add_systems(Update, input);
         app.add_systems(Update, (move_links, grow_links).chain());
         app.add_systems(Startup, setup);
+        app.add_systems(Update, interpolate_links);
     }
 }
 
@@ -60,8 +67,12 @@ fn setup(
                 }),
                 ..Default::default()
             },
-            Velocity {
-                velocity: Vec2::ZERO,
+            Position {
+                position: IVec2::ZERO,
+                prev_position: IVec2::ZERO,
+            },
+            Direction {
+                direction: IVec2::ZERO,
             },
         ))
         .with_children(|children| {
@@ -81,28 +92,28 @@ fn setup(
 }
 
 fn input(
-    mut query: Query<&mut Velocity, With<SnakeHead>>,
+    mut query: Query<&mut Direction, With<SnakeHead>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
-        for mut velocity in query.iter_mut() {
-            velocity.velocity = Vec2::new(1.0, 0.0);
+        for mut diration in query.iter_mut() {
+            diration.direction = IVec2::new(1, 0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowRight) {
-        for mut velocity in query.iter_mut() {
-            velocity.velocity = Vec2::new(-1.0, 0.0);
+        for mut diration in query.iter_mut() {
+            diration.direction = IVec2::new(-1, 0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowUp) {
-        for mut velocity in query.iter_mut() {
-            velocity.velocity = Vec2::new(0.0, 1.0);
+        for mut diration in query.iter_mut() {
+            diration.direction = IVec2::new(0, 1);
         }
     }
     if keyboard.pressed(KeyCode::ArrowDown) {
-        for mut velocity in query.iter_mut() {
-            velocity.velocity = Vec2::new(0.0, -1.0);
+        for mut diration in query.iter_mut() {
+            diration.direction = IVec2::new(0, -1);
         }
     }
     if keyboard.pressed(KeyCode::Escape) {
@@ -111,7 +122,7 @@ fn input(
 }
 
 fn move_links(
-    mut query: Query<(&mut Transform, Entity, &SnakeLink, &Velocity), With<SnakeLink>>,
+    mut query: Query<(&mut Position, Entity, &SnakeLink, &Direction), With<SnakeLink>>,
     mut timer: ResMut<MovementTimer>,
     time: Res<Time>,
 ) {
@@ -121,11 +132,11 @@ fn move_links(
 
     let mut m = HashMap::new();
     let mut tail = None;
-    for (transform, entity, link, _) in query.iter_mut() {
+    for (position, entity, link, _) in query.iter_mut() {
         if let Some(previous_entity) = link.previous {
-            m.insert(previous_entity, (entity, transform));
+            m.insert(previous_entity, (entity, position));
         } else {
-            tail = Some((entity, transform));
+            tail = Some((entity, position));
         }
     }
 
@@ -141,21 +152,25 @@ fn move_links(
             break;
         };
 
-        cur.1.translation = next.1.translation;
+        cur.1.prev_position = cur.1.position;
+        cur.1.position = next.1.position;
 
         swap(&mut cur, next);
     }
     drop(m);
 
-    for (mut transform, _, _, velocity) in query.iter_mut() {
-        transform.translation += Vec3::new(velocity.velocity.x, 0.0, velocity.velocity.y);
+    for (mut position, _, _, direction) in query.iter_mut() {
+        if direction.direction.x != 0 || direction.direction.y != 0 {
+            position.prev_position = position.position;
+            position.position += direction.direction;
+        }
     }
 }
 
 fn grow_links(
     mut events: EventReader<TreatEatenEvent>,
     mut commands: Commands,
-    mut query: Query<(Entity, &mut SnakeLink), With<SnakeTail>>,
+    mut query: Query<(Entity, &mut SnakeLink, &Position), With<SnakeTail>>,
 ) {
     for event in events.read() {
         let mut tail = query.single_mut();
@@ -163,10 +178,28 @@ fn grow_links(
         commands.entity(event.treat_entity).insert((
             SnakeTail {},
             SnakeLink { previous: None },
-            Velocity {
-                velocity: Vec2::ZERO,
+            Position {
+                position: tail.2.prev_position,
+                prev_position: tail.2.prev_position,
+            },
+            Direction {
+                direction: IVec2::ZERO,
             },
         ));
         commands.entity(tail.0).remove::<SnakeTail>();
+    }
+}
+
+fn interpolate_links(
+    mut query: Query<(&Position, &mut Transform), With<SnakeLink>>,
+    fixed_time: Res<Time>,
+) {
+    for (state, mut xf) in query.iter_mut() {
+        let direction = Vec2::new(
+            state.position.x as f32 - xf.translation.x,
+            state.position.y as f32 - xf.translation.z,
+        );
+        xf.translation.x += direction.x * 10.0 * fixed_time.delta_seconds();
+        xf.translation.z += direction.y * 10.0 * fixed_time.delta_seconds();
     }
 }
