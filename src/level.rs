@@ -1,11 +1,22 @@
 use bevy::color::palettes::css::{GREEN, GREY, RED, WHITE};
 use bevy::prelude::*;
+use crate::player::SnakeLink;
+
+#[derive(Component)]
+pub struct SnakeTreat;
 
 pub struct LevelPlugin;
+
+#[derive(Event)]
+pub struct TreatEatenEvent {
+    pub treat_entity: Entity,
+}
 
 impl Plugin for LevelPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup);
+        app.add_event::<TreatEatenEvent>();
+        app.add_systems(Update, collisions);
     }
 }
 
@@ -26,15 +37,19 @@ fn setup(
 
     // Sphere
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere::default())),
-            material: materials.add(StandardMaterial {
-                base_color: Color::srgb(10.0, 0.0, 0.0),
-                unlit: true,
+        .spawn((
+            SnakeTreat,
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(10.0, 0.0, 0.0),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(-2.0, 0.0, 0.0),
                 ..Default::default()
-            }),
-            ..Default::default()
-        })
+            }
+        ))
         .with_children(|children| {
             children.spawn(PointLightBundle {
                 point_light: PointLight {
@@ -52,16 +67,19 @@ fn setup(
 
     // Sphere
     commands
-        .spawn(PbrBundle {
-            mesh: meshes.add(Mesh::from(Sphere::default())),
-            material: materials.add(StandardMaterial {
-                base_color: Color::srgb(0.0, 10.0, 0.0),
-                unlit: true,
+        .spawn((
+            SnakeTreat,
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(0.0, 10.0, 0.0),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(8.0, 0.0, 4.0),
                 ..Default::default()
-            }),
-            transform: Transform::from_xyz(8.0, 0.0, 4.0),
-            ..Default::default()
-        })
+            }
+        ))
         .with_children(|children| {
             children.spawn(PointLightBundle {
                 point_light: PointLight {
@@ -90,4 +108,23 @@ fn setup(
         transform: Transform::from_xyz(0.0, -0.5, 0.0),
         ..Default::default()
     });
+}
+
+fn collisions(
+    mut commands: Commands,
+    mut events: EventWriter<TreatEatenEvent>,
+    snake_treats: Query<(Entity, &Transform, &SnakeTreat)>,
+    snake_links: Query<&Transform, With<SnakeLink>>,
+) {
+    // detect collisions between snake and treats, remove SnakeTreat component and send event
+    for (treat_entity, treat_transform, _) in snake_treats.iter() {
+        for link_transform in snake_links.iter() {
+            if treat_transform.translation.distance(link_transform.translation) < 0.5 {
+                commands.entity(treat_entity).remove::<SnakeTreat>();
+                events.send(TreatEatenEvent {
+                    treat_entity
+                });
+            }
+        }
+    }
 }

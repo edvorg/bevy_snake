@@ -3,11 +3,15 @@ use std::time::Duration;
 use bevy::color::palettes::css::WHITE;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
+use crate::level::TreatEatenEvent;
 
-const MOVEMENT_INTERVAL: Duration = Duration::from_millis(500);
+const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
 
 #[derive(Component)]
 pub struct SnakeHead;
+
+#[derive(Component)]
+pub struct SnakeTail;
 
 #[derive(Component)]
 pub struct SnakeLink {
@@ -32,7 +36,10 @@ impl Plugin for PlayerPlugin {
             timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
         });
         app.add_systems(Update, input);
-        app.add_systems(Update, move_links);
+        app.add_systems(Update, (
+            move_links,
+            grow_links,
+        ).chain());
         app.add_systems(Startup, setup);
     }
 }
@@ -47,6 +54,7 @@ fn setup(
             SnakeLink {
                 previous: None,
             },
+            SnakeTail,
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::default())),
                 material: materials.add(StandardMaterial {
@@ -228,6 +236,7 @@ fn move_links(
     let Some(tail) = tail else {
         panic!("tail not found");
     };
+
     let mut cur = tail;
     loop {
         let next = m.get_mut(&cur.0);
@@ -248,5 +257,27 @@ fn move_links(
             0.0,
             velocity.velocity.y,
         );
+    }
+}
+
+fn grow_links(
+    mut events: EventReader<TreatEatenEvent>,
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut SnakeLink), With<SnakeTail>>,
+) {
+    for event in events.read() {
+        let mut tail = query.single_mut();
+        tail.1.previous = Some(event.treat_entity);
+        commands.entity(event.treat_entity).insert((
+            SnakeTail {
+            },
+            SnakeLink {
+                previous: None,
+            },
+            Velocity {
+                velocity: Vec2::ZERO,
+            },
+        ));
+        commands.entity(tail.0).remove::<SnakeTail>();
     }
 }
