@@ -7,6 +7,11 @@ use std::mem::swap;
 use std::time::Duration;
 
 const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
+const LERP_RATE: f32 = 20.0;
+const DIR_LEFT: IVec2 = IVec2::new(1, 0);
+const DIR_RIGHT: IVec2 = IVec2::new(-1, 0);
+const DIR_UP: IVec2 = IVec2::new(0, 1);
+const DIR_DOWN: IVec2 = IVec2::new(0, -1);
 
 #[derive(Component)]
 pub struct SnakeHead;
@@ -92,23 +97,31 @@ fn input(
     mut exit: EventWriter<AppExit>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
-        for mut diration in query.iter_mut() {
-            diration.direction = IVec2::new(1, 0);
+        for mut direction in query.iter_mut() {
+            if direction.direction != DIR_RIGHT {
+                direction.direction = DIR_LEFT;
+            }
         }
     }
     if keyboard.pressed(KeyCode::ArrowRight) {
-        for mut diration in query.iter_mut() {
-            diration.direction = IVec2::new(-1, 0);
+        for mut direction in query.iter_mut() {
+            if direction.direction != DIR_LEFT {
+                direction.direction = DIR_RIGHT;
+            }
         }
     }
     if keyboard.pressed(KeyCode::ArrowUp) {
-        for mut diration in query.iter_mut() {
-            diration.direction = IVec2::new(0, 1);
+        for mut direction in query.iter_mut() {
+            if direction.direction != DIR_DOWN {
+                direction.direction = DIR_UP;
+            }
         }
     }
     if keyboard.pressed(KeyCode::ArrowDown) {
-        for mut diration in query.iter_mut() {
-            diration.direction = IVec2::new(0, -1);
+        for mut direction in query.iter_mut() {
+            if direction.direction != DIR_UP {
+                direction.direction = DIR_DOWN;
+            }
         }
     }
     if keyboard.pressed(KeyCode::Escape) {
@@ -194,7 +207,7 @@ fn interpolate_links(
             state.position.x as f32 - xf.translation.x,
             state.position.y as f32 - xf.translation.z,
         );
-        xf.translation.x += direction.x * 20.0 * fixed_time.delta_seconds();
-        xf.translation.z += direction.y * 20.0 * fixed_time.delta_seconds();
+        xf.translation.x += direction.x * LERP_RATE * fixed_time.delta_seconds();
+        xf.translation.z += direction.y * LERP_RATE * fixed_time.delta_seconds();
     }
 }
