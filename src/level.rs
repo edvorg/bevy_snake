@@ -17,6 +17,7 @@ impl Plugin for LevelPlugin {
         app.add_systems(Startup, setup);
         app.add_event::<TreatEatenEvent>();
         app.add_systems(Update, collisions);
+        app.add_systems(Update, spawn_treats);
     }
 }
 
@@ -128,5 +129,47 @@ fn collisions(
                 events.send(TreatEatenEvent { treat_entity });
             }
         }
+    }
+}
+
+fn spawn_treats(
+    query: Query<&SnakeTreat>,
+    mut commands: Commands,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    if query.is_empty() {
+        commands
+            .spawn((
+                SnakeTreat,
+                PbrBundle {
+                    mesh: meshes.add(Mesh::from(Sphere::default())),
+                    material: materials.add(StandardMaterial {
+                        base_color: Color::srgb(10.0, 0.0, 0.0),
+                        unlit: true,
+                        ..Default::default()
+                    }),
+                    transform: Transform::from_xyz(
+                        (rand::random::<f32>() - 0.5) * 20.0,
+                        0.0,
+                        (rand::random::<f32>() - 0.5) * 20.0,
+                    ),
+                    ..Default::default()
+                },
+            ))
+            .with_children(|children| {
+                children.spawn(PointLightBundle {
+                    point_light: PointLight {
+                        shadows_enabled: true,
+                        intensity: 10_000_000.,
+                        range: 100.0,
+                        shadow_depth_bias: 0.1,
+                        radius: 0.5,
+                        color: RED.into(),
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                });
+            });
     }
 }
