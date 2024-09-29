@@ -123,8 +123,9 @@ fn collisions(
             if treat_transform
                 .translation
                 .distance(link_transform.translation)
-                < 0.5
+                < 1.0
             {
+                commands.entity(treat_entity).despawn_descendants();
                 commands.entity(treat_entity).remove::<SnakeTreat>();
                 events.send(TreatEatenEvent { treat_entity });
             }
