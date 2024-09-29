@@ -199,7 +199,7 @@ fn interpolate_links(
             state.position.x as f32 - xf.translation.x,
             state.position.y as f32 - xf.translation.z,
         );
-        xf.translation.x += direction.x * 10.0 * fixed_time.delta_seconds();
-        xf.translation.z += direction.y * 10.0 * fixed_time.delta_seconds();
+        xf.translation.x += direction.x * 20.0 * fixed_time.delta_seconds();
+        xf.translation.z += direction.y * 20.0 * fixed_time.delta_seconds();
     }
 }
