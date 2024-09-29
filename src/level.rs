@@ -139,6 +139,12 @@ fn spawn_treats(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
+    let treat_color = Vec3::new(
+        rand::random::<f32>(),
+        rand::random::<f32>(),
+        rand::random::<f32>(),
+    )
+    .normalize();
     if query.is_empty() {
         commands
             .spawn((
@@ -146,14 +152,18 @@ fn spawn_treats(
                 PbrBundle {
                     mesh: meshes.add(Mesh::from(Sphere::default())),
                     material: materials.add(StandardMaterial {
-                        base_color: Color::srgb(10.0, 0.0, 0.0),
+                        base_color: Color::srgb(
+                            treat_color.x * 10.0,
+                            treat_color.y * 10.0,
+                            treat_color.z * 10.0,
+                        ),
                         unlit: true,
                         ..Default::default()
                     }),
                     transform: Transform::from_xyz(
-                        (rand::random::<f32>() - 0.5) * 20.0,
+                        (rand::random::<i32>() % 7 - 3) as f32,
                         0.0,
-                        (rand::random::<f32>() - 0.5) * 20.0,
+                        (rand::random::<i32>() % 7 - 3) as f32,
                     ),
                     ..Default::default()
                 },
@@ -166,7 +176,7 @@ fn spawn_treats(
                         range: 100.0,
                         shadow_depth_bias: 0.1,
                         radius: 0.5,
-                        color: RED.into(),
+                        color: Color::srgb(treat_color.x, treat_color.y, treat_color.z),
                         ..Default::default()
                     },
                     ..Default::default()
