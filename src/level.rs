@@ -1,3 +1,4 @@
+use crate::common::Position;
 use crate::player::SnakeLink;
 use bevy::color::palettes::css::{GREY, WHITE};
 use bevy::prelude::*;
@@ -54,17 +55,13 @@ fn setup(
 fn collisions(
     mut commands: Commands,
     mut events: EventWriter<TreatEatenEvent>,
-    snake_treats: Query<(Entity, &Transform, &SnakeTreat)>,
-    snake_links: Query<&Transform, With<SnakeLink>>,
+    snake_treats: Query<(Entity, &Position, &SnakeTreat)>,
+    snake_links: Query<&Position, With<SnakeLink>>,
 ) {
     // detect collisions between snake and treats, remove SnakeTreat component and send event
-    for (treat_entity, treat_transform, _) in snake_treats.iter() {
+    for (treat_entity, treat_position, _) in snake_treats.iter() {
         for link_transform in snake_links.iter() {
-            if treat_transform
-                .translation
-                .distance(link_transform.translation)
-                < 1.0
-            {
+            if treat_position.position == link_transform.position {
                 commands.entity(treat_entity).despawn_descendants();
                 commands.entity(treat_entity).remove::<SnakeTreat>();
                 events.send(TreatEatenEvent { treat_entity });
@@ -86,6 +83,7 @@ fn spawn_treats(
     )
     .normalize();
     if query.is_empty() {
+        let position = IVec2::new(rand::random::<i32>() % 7 - 3, rand::random::<i32>() % 7 - 3);
         commands
             .spawn((
                 SnakeTreat,
@@ -100,12 +98,12 @@ fn spawn_treats(
                         unlit: true,
                         ..Default::default()
                     }),
-                    transform: Transform::from_xyz(
-                        (rand::random::<i32>() % 7 - 3) as f32,
-                        0.0,
-                        (rand::random::<i32>() % 7 - 3) as f32,
-                    ),
+                    transform: Transform::from_xyz(position.x as f32, 0.0, position.y as f32),
                     ..Default::default()
+                },
+                Position {
+                    position,
+                    prev_position: position,
                 },
             ))
             .with_children(|children| {

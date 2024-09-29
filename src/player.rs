@@ -1,3 +1,4 @@
+use crate::common::Position;
 use crate::level::TreatEatenEvent;
 use bevy::color::palettes::css::WHITE;
 use bevy::prelude::*;
@@ -16,12 +17,6 @@ pub struct SnakeTail;
 #[derive(Component)]
 pub struct SnakeLink {
     previous: Option<Entity>,
-}
-
-#[derive(Component)]
-struct Position {
-    position: IVec2,
-    prev_position: IVec2,
 }
 
 #[derive(Component)]
