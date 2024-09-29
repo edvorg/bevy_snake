@@ -67,7 +67,7 @@ fn setup(
             children.spawn(PointLightBundle {
                 point_light: PointLight {
                     shadows_enabled: true,
-                    intensity: 10_000_0.,
+                    intensity: 100_000.,
                     range: 100.0,
                     shadow_depth_bias: 0.1,
                     radius: 0.5,
@@ -101,7 +101,7 @@ fn setup(
             children.spawn(PointLightBundle {
                 point_light: PointLight {
                     shadows_enabled: true,
-                    intensity: 10_000_0.,
+                    intensity: 100_000.,
                     range: 100.0,
                     shadow_depth_bias: 0.1,
                     radius: 0.5,
@@ -135,7 +135,7 @@ fn setup(
             children.spawn(PointLightBundle {
                 point_light: PointLight {
                     shadows_enabled: true,
-                    intensity: 10_000_0.,
+                    intensity: 100_000.,
                     range: 100.0,
                     shadow_depth_bias: 0.1,
                     radius: 0.5,
@@ -170,7 +170,7 @@ fn setup(
             children.spawn(PointLightBundle {
                 point_light: PointLight {
                     shadows_enabled: true,
-                    intensity: 10_000_0.,
+                    intensity: 100_000.,
                     range: 100.0,
                     shadow_depth_bias: 0.1,
                     radius: 0.5,
@@ -239,13 +239,13 @@ fn move_links(
     loop {
         let next = m.get_mut(&cur.0);
 
-        let Some(mut next) = next else {
+        let Some(next) = next else {
             break;
         };
 
         cur.1.translation = next.1.translation;
 
-        swap(&mut cur, &mut next);
+        swap(&mut cur, next);
     }
     drop(m);
 
