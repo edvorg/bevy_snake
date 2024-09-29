@@ -92,34 +92,34 @@ fn setup(
 }
 
 fn input(
-    mut query: Query<&mut Direction, With<SnakeHead>>,
+    mut query: Query<(&mut Direction, &Position), With<SnakeHead>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
-        for mut direction in query.iter_mut() {
-            if direction.direction != DIR_RIGHT {
+        for (mut direction, position) in query.iter_mut() {
+            if position.position - position.prev_position != DIR_RIGHT {
                 direction.direction = DIR_LEFT;
             }
         }
     }
     if keyboard.pressed(KeyCode::ArrowRight) {
-        for mut direction in query.iter_mut() {
-            if direction.direction != DIR_LEFT {
+        for (mut direction, position) in query.iter_mut() {
+            if position.position - position.prev_position != DIR_LEFT {
                 direction.direction = DIR_RIGHT;
             }
         }
     }
     if keyboard.pressed(KeyCode::ArrowUp) {
-        for mut direction in query.iter_mut() {
-            if direction.direction != DIR_DOWN {
+        for (mut direction, position) in query.iter_mut() {
+            if position.position - position.prev_position != DIR_DOWN {
                 direction.direction = DIR_UP;
             }
         }
     }
     if keyboard.pressed(KeyCode::ArrowDown) {
-        for mut direction in query.iter_mut() {
-            if direction.direction != DIR_UP {
+        for (mut direction, position) in query.iter_mut() {
+            if position.position - position.prev_position != DIR_UP {
                 direction.direction = DIR_DOWN;
             }
         }
