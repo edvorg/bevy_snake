@@ -37,7 +37,6 @@ fn setup(
         ..Default::default()
     });
 
-    // span a plane behind the sphere
     commands.spawn(PbrBundle {
         mesh: meshes.add(Mesh::from(Plane3d {
             half_size: Vec2::new(10.0, 10.0),
@@ -58,7 +57,6 @@ fn collisions(
     snake_treats: Query<(Entity, &Position, &SnakeTreat)>,
     snake_links: Query<&Position, With<SnakeLink>>,
 ) {
-    // detect collisions between snake and treats, remove SnakeTreat component and send event
     for (treat_entity, treat_position, _) in snake_treats.iter() {
         for link_transform in snake_links.iter() {
             if treat_position.position == link_transform.position {
