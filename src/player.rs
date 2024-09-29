@@ -1,15 +1,22 @@
+use std::mem::swap;
 use std::time::Duration;
 use bevy::color::palettes::css::WHITE;
 use bevy::prelude::*;
+use bevy::utils::HashMap;
 
 const MOVEMENT_INTERVAL: Duration = Duration::from_millis(500);
 
 #[derive(Component)]
-pub struct Player;
+pub struct SnakeHead;
 
 #[derive(Component)]
-struct Direction {
-    direction: IVec2,
+pub struct SnakeLink {
+    previous: Option<Entity>,
+}
+
+#[derive(Component)]
+struct Velocity {
+    velocity: Vec2,
 }
 
 #[derive(Resource)]
@@ -25,7 +32,7 @@ impl Plugin for PlayerPlugin {
             timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
         });
         app.add_systems(Update, input);
-        app.add_systems(Update, movement);
+        app.add_systems(Update, move_links);
         app.add_systems(Startup, setup);
     }
 }
@@ -35,10 +42,11 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    // Sphere
-    commands
+    let link0 = commands
         .spawn((
-            Player,
+            SnakeLink {
+                previous: None,
+            },
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::default())),
                 material: materials.add(StandardMaterial {
@@ -48,8 +56,108 @@ fn setup(
                 }),
                 ..Default::default()
             },
-            Direction {
-                direction: IVec2::ZERO,
+            Velocity {
+                velocity: Vec2::ZERO,
+            },
+        ))
+        .with_children(|children| {
+            children.spawn(PointLightBundle {
+                point_light: PointLight {
+                    shadows_enabled: true,
+                    intensity: 10_000_0.,
+                    range: 100.0,
+                    shadow_depth_bias: 0.1,
+                    radius: 0.5,
+                    color: WHITE.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        }).id();
+
+    let link1 = commands
+        .spawn((
+            SnakeLink {
+                previous: Some(link0),
+            },
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(6.5, 6.5, 6.5),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            Velocity {
+                velocity: Vec2::ZERO,
+            },
+        ))
+        .with_children(|children| {
+            children.spawn(PointLightBundle {
+                point_light: PointLight {
+                    shadows_enabled: true,
+                    intensity: 10_000_0.,
+                    range: 100.0,
+                    shadow_depth_bias: 0.1,
+                    radius: 0.5,
+                    color: WHITE.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        }).id();
+
+    let link2 = commands
+        .spawn((
+            SnakeLink {
+                previous: Some(link1),
+            },
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(6.5, 6.5, 6.5),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            Velocity {
+                velocity: Vec2::ZERO,
+            },
+        ))
+        .with_children(|children| {
+            children.spawn(PointLightBundle {
+                point_light: PointLight {
+                    shadows_enabled: true,
+                    intensity: 10_000_0.,
+                    range: 100.0,
+                    shadow_depth_bias: 0.1,
+                    radius: 0.5,
+                    color: WHITE.into(),
+                    ..Default::default()
+                },
+                ..Default::default()
+            });
+        }).id();
+
+    commands
+        .spawn((
+            SnakeHead,
+            SnakeLink {
+                previous: Some(link2),
+            },
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(6.5, 6.5, 6.5),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                ..Default::default()
+            },
+            Velocity {
+                velocity: Vec2::ZERO,
             },
         ))
         .with_children(|children| {
@@ -69,28 +177,28 @@ fn setup(
 }
 
 fn input(
-    mut query: Query<&mut Direction, With<Player>>,
+    mut query: Query<&mut Velocity, With<SnakeHead>>,
     keyboard: Res<ButtonInput<KeyCode>>,
     mut exit: EventWriter<AppExit>,
 ) {
     if keyboard.pressed(KeyCode::ArrowLeft) {
-        for mut direction in query.iter_mut() {
-            direction.direction = IVec2::new(-1, 0);
+        for mut velocity in query.iter_mut() {
+            velocity.velocity = Vec2::new(1.0, 0.0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowRight) {
-        for mut direction in query.iter_mut() {
-            direction.direction = IVec2::new(1, 0);
+        for mut velocity in query.iter_mut() {
+            velocity.velocity = Vec2::new(-1.0, 0.0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowUp) {
-        for mut direction in query.iter_mut() {
-            direction.direction = IVec2::new(0, -1);
+        for mut velocity in query.iter_mut() {
+            velocity.velocity = Vec2::new(0.0, 1.0);
         }
     }
     if keyboard.pressed(KeyCode::ArrowDown) {
-        for mut direction in query.iter_mut() {
-            direction.direction = IVec2::new(0, 1);
+        for mut velocity in query.iter_mut() {
+            velocity.velocity = Vec2::new(0.0, -1.0);
         }
     }
     if keyboard.pressed(KeyCode::Escape) {
@@ -98,18 +206,47 @@ fn input(
     }
 }
 
-fn movement(
-    mut query: Query<(&mut Transform, &Direction)>,
+fn move_links(
+    mut query: Query<(&mut Transform, Entity, &SnakeLink, &Velocity), With<SnakeLink>>,
     mut timer: ResMut<MovementTimer>,
     time: Res<Time>,
 ) {
-    if timer.timer.tick(time.delta()).just_finished() {
-        for (mut transform, direction) in query.iter_mut() {
-            transform.translation += Vec3::new(
-                direction.direction.x as f32,
-                0.0,
-                direction.direction.y as f32,
-            );
+    if !timer.timer.tick(time.delta()).just_finished() {
+        return;
+    }
+
+    let mut m = HashMap::new();
+    let mut tail = None;
+    for (transform, entity, link, _) in query.iter_mut() {
+        if let Some(previous_entity) = link.previous {
+            m.insert(previous_entity, (entity, transform));
+        } else {
+            tail = Some((entity, transform));
         }
+    }
+
+    let Some(tail) = tail else {
+        panic!("tail not found");
+    };
+    let mut cur = tail;
+    loop {
+        let next = m.get_mut(&cur.0);
+
+        let Some(mut next) = next else {
+            break;
+        };
+
+        cur.1.translation = next.1.translation;
+
+        swap(&mut cur, &mut next);
+    }
+    drop(m);
+
+    for (mut transform, _, _, velocity) in query.iter_mut() {
+        transform.translation += Vec3::new(
+            velocity.velocity.x,
+            0.0,
+            velocity.velocity.y,
+        );
     }
 }
