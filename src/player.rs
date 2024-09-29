@@ -46,113 +46,11 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
-    let link0 = commands
+    commands
         .spawn((
             SnakeLink { previous: None },
             SnakeTail,
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(Sphere::default())),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::srgb(6.5, 6.5, 6.5),
-                    unlit: true,
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-            Velocity {
-                velocity: Vec2::ZERO,
-            },
-        ))
-        .with_children(|children| {
-            children.spawn(PointLightBundle {
-                point_light: PointLight {
-                    shadows_enabled: true,
-                    intensity: 100_000.,
-                    range: 100.0,
-                    shadow_depth_bias: 0.1,
-                    radius: 0.5,
-                    color: WHITE.into(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            });
-        })
-        .id();
-
-    let link1 = commands
-        .spawn((
-            SnakeLink {
-                previous: Some(link0),
-            },
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(Sphere::default())),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::srgb(6.5, 6.5, 6.5),
-                    unlit: true,
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-            Velocity {
-                velocity: Vec2::ZERO,
-            },
-        ))
-        .with_children(|children| {
-            children.spawn(PointLightBundle {
-                point_light: PointLight {
-                    shadows_enabled: true,
-                    intensity: 100_000.,
-                    range: 100.0,
-                    shadow_depth_bias: 0.1,
-                    radius: 0.5,
-                    color: WHITE.into(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            });
-        })
-        .id();
-
-    let link2 = commands
-        .spawn((
-            SnakeLink {
-                previous: Some(link1),
-            },
-            PbrBundle {
-                mesh: meshes.add(Mesh::from(Sphere::default())),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::srgb(6.5, 6.5, 6.5),
-                    unlit: true,
-                    ..Default::default()
-                }),
-                ..Default::default()
-            },
-            Velocity {
-                velocity: Vec2::ZERO,
-            },
-        ))
-        .with_children(|children| {
-            children.spawn(PointLightBundle {
-                point_light: PointLight {
-                    shadows_enabled: true,
-                    intensity: 100_000.,
-                    range: 100.0,
-                    shadow_depth_bias: 0.1,
-                    radius: 0.5,
-                    color: WHITE.into(),
-                    ..Default::default()
-                },
-                ..Default::default()
-            });
-        })
-        .id();
-
-    commands
-        .spawn((
             SnakeHead,
-            SnakeLink {
-                previous: Some(link2),
-            },
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::default())),
                 material: materials.add(StandardMaterial {
