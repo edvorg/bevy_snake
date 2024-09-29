@@ -1,6 +1,6 @@
+use crate::player::SnakeLink;
 use bevy::color::palettes::css::{GREEN, GREY, RED, WHITE};
 use bevy::prelude::*;
-use crate::player::SnakeLink;
 
 #[derive(Component)]
 pub struct SnakeTreat;
@@ -48,7 +48,7 @@ fn setup(
                 }),
                 transform: Transform::from_xyz(-2.0, 0.0, 0.0),
                 ..Default::default()
-            }
+            },
         ))
         .with_children(|children| {
             children.spawn(PointLightBundle {
@@ -78,7 +78,7 @@ fn setup(
                 }),
                 transform: Transform::from_xyz(8.0, 0.0, 4.0),
                 ..Default::default()
-            }
+            },
         ))
         .with_children(|children| {
             children.spawn(PointLightBundle {
@@ -119,11 +119,13 @@ fn collisions(
     // detect collisions between snake and treats, remove SnakeTreat component and send event
     for (treat_entity, treat_transform, _) in snake_treats.iter() {
         for link_transform in snake_links.iter() {
-            if treat_transform.translation.distance(link_transform.translation) < 0.5 {
+            if treat_transform
+                .translation
+                .distance(link_transform.translation)
+                < 0.5
+            {
                 commands.entity(treat_entity).remove::<SnakeTreat>();
-                events.send(TreatEatenEvent {
-                    treat_entity
-                });
+                events.send(TreatEatenEvent { treat_entity });
             }
         }
     }

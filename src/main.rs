@@ -1,6 +1,6 @@
-mod player;
 mod camera;
 mod level;
+mod player;
 
 use crate::camera::CameraPlugin;
 use crate::level::LevelPlugin;

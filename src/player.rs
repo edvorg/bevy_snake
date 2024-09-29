@@ -1,9 +1,9 @@
-use std::mem::swap;
-use std::time::Duration;
+use crate::level::TreatEatenEvent;
 use bevy::color::palettes::css::WHITE;
 use bevy::prelude::*;
 use bevy::utils::HashMap;
-use crate::level::TreatEatenEvent;
+use std::mem::swap;
+use std::time::Duration;
 
 const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
 
@@ -36,10 +36,7 @@ impl Plugin for PlayerPlugin {
             timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
         });
         app.add_systems(Update, input);
-        app.add_systems(Update, (
-            move_links,
-            grow_links,
-        ).chain());
+        app.add_systems(Update, (move_links, grow_links).chain());
         app.add_systems(Startup, setup);
     }
 }
@@ -51,9 +48,7 @@ fn setup(
 ) {
     let link0 = commands
         .spawn((
-            SnakeLink {
-                previous: None,
-            },
+            SnakeLink { previous: None },
             SnakeTail,
             PbrBundle {
                 mesh: meshes.add(Mesh::from(Sphere::default())),
@@ -81,7 +76,8 @@ fn setup(
                 },
                 ..Default::default()
             });
-        }).id();
+        })
+        .id();
 
     let link1 = commands
         .spawn((
@@ -114,7 +110,8 @@ fn setup(
                 },
                 ..Default::default()
             });
-        }).id();
+        })
+        .id();
 
     let link2 = commands
         .spawn((
@@ -147,7 +144,8 @@ fn setup(
                 },
                 ..Default::default()
             });
-        }).id();
+        })
+        .id();
 
     commands
         .spawn((
@@ -252,11 +250,7 @@ fn move_links(
     drop(m);
 
     for (mut transform, _, _, velocity) in query.iter_mut() {
-        transform.translation += Vec3::new(
-            velocity.velocity.x,
-            0.0,
-            velocity.velocity.y,
-        );
+        transform.translation += Vec3::new(velocity.velocity.x, 0.0, velocity.velocity.y);
     }
 }
 
@@ -269,11 +263,8 @@ fn grow_links(
         let mut tail = query.single_mut();
         tail.1.previous = Some(event.treat_entity);
         commands.entity(event.treat_entity).insert((
-            SnakeTail {
-            },
-            SnakeLink {
-                previous: None,
-            },
+            SnakeTail {},
+            SnakeLink { previous: None },
             Velocity {
                 velocity: Vec2::ZERO,
             },
