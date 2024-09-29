@@ -74,49 +74,52 @@ fn spawn_treats(
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
 ) {
+    if !query.is_empty() {
+        return;
+    }
+
     let treat_color = Vec3::new(
         rand::random::<f32>(),
         rand::random::<f32>(),
         rand::random::<f32>(),
     )
     .normalize();
-    if query.is_empty() {
-        let position = IVec2::new(rand::random::<i32>() % 7 - 3, rand::random::<i32>() % 7 - 3);
-        commands
-            .spawn((
-                SnakeTreat,
-                PbrBundle {
-                    mesh: meshes.add(Mesh::from(Sphere::default())),
-                    material: materials.add(StandardMaterial {
-                        base_color: Color::srgb(
-                            treat_color.x * 10.0,
-                            treat_color.y * 10.0,
-                            treat_color.z * 10.0,
-                        ),
-                        unlit: true,
-                        ..Default::default()
-                    }),
-                    transform: Transform::from_xyz(position.x as f32, 0.0, position.y as f32),
+
+    let position = IVec2::new(rand::random::<i32>() % 7 - 3, rand::random::<i32>() % 7 - 3);
+    commands
+        .spawn((
+            SnakeTreat,
+            PbrBundle {
+                mesh: meshes.add(Mesh::from(Sphere::default())),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::srgb(
+                        treat_color.x * 10.0,
+                        treat_color.y * 10.0,
+                        treat_color.z * 10.0,
+                    ),
+                    unlit: true,
+                    ..Default::default()
+                }),
+                transform: Transform::from_xyz(position.x as f32, 0.0, position.y as f32),
+                ..Default::default()
+            },
+            Position {
+                position,
+                prev_position: position,
+            },
+        ))
+        .with_children(|children| {
+            children.spawn(PointLightBundle {
+                point_light: PointLight {
+                    shadows_enabled: true,
+                    intensity: 10_000_000.,
+                    range: 100.0,
+                    shadow_depth_bias: 0.1,
+                    radius: 0.5,
+                    color: Color::srgb(treat_color.x, treat_color.y, treat_color.z),
                     ..Default::default()
                 },
-                Position {
-                    position,
-                    prev_position: position,
-                },
-            ))
-            .with_children(|children| {
-                children.spawn(PointLightBundle {
-                    point_light: PointLight {
-                        shadows_enabled: true,
-                        intensity: 10_000_000.,
-                        range: 100.0,
-                        shadow_depth_bias: 0.1,
-                        radius: 0.5,
-                        color: Color::srgb(treat_color.x, treat_color.y, treat_color.z),
-                        ..Default::default()
-                    },
-                    ..Default::default()
-                });
+                ..Default::default()
             });
-    }
+        });
 }
