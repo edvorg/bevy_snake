@@ -39,7 +39,7 @@ jobs:
 
       - name: Build Release
         run: |
-          trunk build --release --public-url "./bevy_snake/"
+          trunk build --release --public-url ${{ github.event.repository.name }}
 
 #      - name: optimize Wasm
 #        uses: NiklasEi/wasm-opt-action@v2
