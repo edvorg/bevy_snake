@@ -45,10 +45,10 @@ jobs:
         run: |
           sed -i -e 's/href="\.\//href="/g' dist/index.html
 
-#      - name: optimize Wasm
-#        uses: NiklasEi/wasm-opt-action@v2
-#        with:
-#          file: dist/*.wasm
+      - name: optimize Wasm
+        uses: NiklasEi/wasm-opt-action@v2
+        with:
+          file: dist/*.wasm
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
