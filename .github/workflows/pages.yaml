@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Release
         run: |
-          trunk build --release
+          trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
 
 #      - name: optimize Wasm
 #        uses: NiklasEi/wasm-opt-action@v2
