@@ -39,7 +39,11 @@ jobs:
 
       - name: Build Release
         run: |
-          trunk build --release --public-url ${{ github.event.repository.name }}
+          trunk build --release --public-url ./
+
+      - name: Fix index.html
+        run: |
+          sed -i -e 's/href="\.\//href="/g' dist/index.html
 
 #      - name: optimize Wasm
 #        uses: NiklasEi/wasm-opt-action@v2
