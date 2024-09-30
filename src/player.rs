@@ -6,7 +6,7 @@ use bevy::utils::HashMap;
 use std::mem::swap;
 use std::time::Duration;
 
-const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
+const DEFAULT_MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
 const DEFAULT_LERP_RATE: f32 = 5.0;
 const DIR_LEFT: IVec2 = IVec2::new(1, 0);
 const DIR_RIGHT: IVec2 = IVec2::new(-1, 0);
@@ -35,8 +35,8 @@ struct Direction {
 }
 
 #[derive(Resource)]
-struct MovementTimer {
-    timer: Timer,
+pub struct MovementTimer {
+    pub timer: Timer,
 }
 
 pub struct PlayerPlugin;
@@ -47,7 +47,7 @@ impl Plugin for PlayerPlugin {
             rate: DEFAULT_LERP_RATE,
         });
         app.insert_resource(MovementTimer {
-            timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
+            timer: Timer::new(DEFAULT_MOVEMENT_INTERVAL, TimerMode::Repeating),
         });
         app.add_systems(Update, input);
         app.add_systems(Update, (move_links, grow_links).chain());
