@@ -6,13 +6,13 @@
 <!--    <link data-trunk rel="copy-dir" href="assets"/>-->
 <!--    <link data-trunk rel="scss" href="./main.scss" />-->
 
-<link rel="modulepreload" href="./bevy_snake/bevy_snake-2e3b8828a52b997.js" crossorigin=anonymous integrity="sha384-Blm0Y9H9Ls9YfHq42hSQAOI1QaxXges4H0g5TCp9rK0pntfMtI2LBwHA+wpgJeuJ">
-<link rel="preload" href="./bevy_snake/bevy_snake-2e3b8828a52b997_bg.wasm" crossorigin=anonymous integrity="sha384-Bs0mSPbStMQak9+LGTDNt9D6qsge1OLHPd322Ttgae9rB2pXkXLRDw4cifT6Y5y9" as="fetch" type="application/wasm"></head>
+<link rel="modulepreload" href="bevy_snake/bevy_snake-2e3b8828a52b997.js" crossorigin=anonymous integrity="sha384-Blm0Y9H9Ls9YfHq42hSQAOI1QaxXges4H0g5TCp9rK0pntfMtI2LBwHA+wpgJeuJ">
+<link rel="preload" href="bevy_snake/bevy_snake-2e3b8828a52b997_bg.wasm" crossorigin=anonymous integrity="sha384-Bs0mSPbStMQak9+LGTDNt9D6qsge1OLHPd322Ttgae9rB2pXkXLRDw4cifT6Y5y9" as="fetch" type="application/wasm"></head>
 <body>
 
 <script type="module" nonce="JxtbfZ741eQt6fSiVJwrXg==">
-import init, * as bindings from './bevy_snake/bevy_snake-2e3b8828a52b997.js';
-const wasm = await init('./bevy_snake/bevy_snake-2e3b8828a52b997_bg.wasm');
+import init, * as bindings from './bevy_snake-2e3b8828a52b997.js';
+const wasm = await init('./bevy_snake-2e3b8828a52b997_bg.wasm');
 
 
 window.wasmBindings = bindings;
