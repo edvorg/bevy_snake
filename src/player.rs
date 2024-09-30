@@ -7,11 +7,16 @@ use std::mem::swap;
 use std::time::Duration;
 
 const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
-const LERP_RATE: f32 = 20.0;
+const DEFAULT_LERP_RATE: f32 = 20.0;
 const DIR_LEFT: IVec2 = IVec2::new(1, 0);
 const DIR_RIGHT: IVec2 = IVec2::new(-1, 0);
 const DIR_UP: IVec2 = IVec2::new(0, 1);
 const DIR_DOWN: IVec2 = IVec2::new(0, -1);
+
+#[derive(Resource)]
+pub struct LerpRate {
+    pub rate: f32,
+}
 
 #[derive(Component)]
 pub struct SnakeHead;
@@ -38,6 +43,9 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
+        app.insert_resource(LerpRate {
+            rate: DEFAULT_LERP_RATE,
+        });
         app.insert_resource(MovementTimer {
             timer: Timer::new(MOVEMENT_INTERVAL, TimerMode::Repeating),
         });
@@ -201,13 +209,14 @@ fn grow_links(
 fn interpolate_links(
     mut query: Query<(&Position, &mut Transform), With<SnakeLink>>,
     fixed_time: Res<Time>,
+    lerp_rate: Res<LerpRate>,
 ) {
     for (state, mut xf) in query.iter_mut() {
         let direction = Vec2::new(
             state.position.x as f32 - xf.translation.x,
             state.position.y as f32 - xf.translation.z,
         );
-        xf.translation.x += direction.x * LERP_RATE * fixed_time.delta_seconds();
-        xf.translation.z += direction.y * LERP_RATE * fixed_time.delta_seconds();
+        xf.translation.x += direction.x * lerp_rate.rate * fixed_time.delta_seconds();
+        xf.translation.z += direction.y * lerp_rate.rate * fixed_time.delta_seconds();
     }
 }

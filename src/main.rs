@@ -1,9 +1,11 @@
 mod camera;
 mod common;
+mod debug;
 mod level;
 mod player;
 
 use crate::camera::CameraPlugin;
+use crate::debug::DebugPlugin;
 use crate::level::LevelPlugin;
 use crate::player::PlayerPlugin;
 use bevy::color::palettes::css::BLACK;
@@ -29,5 +31,6 @@ fn main() {
         .add_plugins(PlayerPlugin)
         .add_plugins(LevelPlugin)
         .add_plugins(CameraPlugin)
+        .add_plugins(DebugPlugin)
         .run();
 }
