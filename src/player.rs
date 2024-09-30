@@ -7,7 +7,7 @@ use std::mem::swap;
 use std::time::Duration;
 
 const MOVEMENT_INTERVAL: Duration = Duration::from_millis(250);
-const DEFAULT_LERP_RATE: f32 = 20.0;
+const DEFAULT_LERP_RATE: f32 = 5.0;
 const DIR_LEFT: IVec2 = IVec2::new(1, 0);
 const DIR_RIGHT: IVec2 = IVec2::new(-1, 0);
 const DIR_UP: IVec2 = IVec2::new(0, 1);
