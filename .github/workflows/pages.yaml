@@ -29,7 +29,7 @@ jobs:
 
       - name: Build Release
         run: |
-          trunk build --release --public-url "${GITHUB_REPOSITORY#*/}"
+          trunk build --release --public-url "./bevy_snake/"
 
 #      - name: optimize Wasm
 #        uses: NiklasEi/wasm-opt-action@v2
